@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S-Box Analysis Tool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 S-Box Cryptanalysis Tool</h1>
+            <p>Alat Analisis dan Pengujian Kualitas S-Box (Substitution Box)</p>
+        </header>
+
+        <main>
+            <section class="input-section">
+                <h2>Input S-Box</h2>
+                <div class="input-group">
+                    <label for="sbox-input">Masukkan nilai S-Box (0-255, spasi atau koma sebagai pemisah):</label>
+                    <textarea id="sbox-input" rows="8" placeholder="Contoh: 0x63 0x7c 0x77 0x7b 0xf2 ...atau copy dari file" class="sbox-textarea"></textarea>
+                    <div class="button-group">
+                        <button onclick="analyzeSBox()" class="btn btn-primary">Analisis S-Box</button>
+                        <button onclick="clearInput()" class="btn btn-secondary">Clear</button>
+                        <input type="file" id="file-input" accept=".txt,.csv" style="display:none;">
+                        <button onclick="document.getElementById('file-input').click()" class="btn btn-secondary">Upload File</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="results-section" id="results-section" style="display: none;">
+                <h2>Hasil Analisis</h2>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('overview')">Ringkasan</button>
+                    <button class="tab-btn" onclick="switchTab('steps')">📋 Steps</button>
+                    <button class="tab-btn" onclick="switchTab('nl')">Nonlinearity (NL)</button>
+                    <button class="tab-btn" onclick="switchTab('sac')">SAC</button>
+                    <button class="tab-btn" onclick="switchTab('bic')">BIC-NL & BIC-SAC</button>
+                    <button class="tab-btn" onclick="switchTab('lap')">LAP & DAP</button>
+                    <button class="tab-btn" onclick="switchTab('du')">DU & AD</button>
+                    <button class="tab-btn" onclick="switchTab('to')">TO & CI</button>
+                    <button class="tab-btn" onclick="switchTab('details')">Detail</button>
+                </div>
+
+                <!-- TAB: Overview -->
+                <div id="overview" class="tab-content active">
+                    <h3>Ringkasan Analisis</h3>
+                    <div class="summary-grid">
+                        <div class="metric-card" style="background-color: #e3f2fd;">
+                            <h4>Nonlinearity (NL)</h4>
+                            <p class="metric-value" id="nl-avg">-</p>
+                            <p class="metric-unit">Output bits</p>
+                        </div>
+                        <div class="metric-card" style="background-color: #f3e5f5;">
+                            <h4>SAC - Min</h4>
+                            <p class="metric-value" id="sac-min">-</p>
+                            <p class="metric-unit">%</p>
+                        </div>
+                        <div class="metric-card" style="background-color: #f3e5f5;">
+                            <h4>SAC - Max</h4>
+                            <p class="metric-value" id="sac-max">-</p>
+                            <p class="metric-unit">%</p>
+                        </div>
+                        <div class="metric-card" style="background-color: #e8f5e9;">
+                            <h4>Differential Uniformity</h4>
+                            <p class="metric-value" id="du-value">-</p>
+                            <p class="metric-unit">Maximum</p>
+                        </div>
+                        <div class="metric-card" style="background-color: #fff3e0;">
+                            <h4>Algebraic Degree</h4>
+                            <p class="metric-value" id="ad-value">-</p>
+                            <p class="metric-unit">bits</p>
+                        </div>
+                        <div class="metric-card" style="background-color: #fce4ec;">
+                            <h4>Correlation Immunity</h4>
+                            <p class="metric-value" id="ci-value">-</p>
+                            <p class="metric-unit">Order</p>
+                        </div>
+                    </div>
+                    <div id="summary-text" class="summary-text"></div>
+                </div>
+
+                <!-- TAB: Steps -->
+                <div id="steps" class="tab-content">
+                    <h3>📋 Proses Step-by-Step Analisis S-Box</h3>
+                    <p><strong>Panduan lengkap tahapan analisis kualitas S-Box Anda</strong></p>
+                    
+                    <div id="steps-container" class="steps-container">
+                        <!-- Steps akan di-generate oleh JavaScript -->
+                    </div>
+                </div>
+
+                <!-- TAB: Nonlinearity -->
+                <div id="nl" class="tab-content">
+                    <h3>Analisis Nonlinearity (NL)</h3>
+                    <p><strong>Definisi:</strong> Nonlinearity mengukur jarak minimum antara fungsi Boolean dan semua fungsi linear affine. Semakin tinggi nilai NL, semakin resisten terhadap serangan linear.</p>
+                    <div id="nl-results" class="results-box"></div>
+                </div>
+
+                <!-- TAB: SAC -->
+                <div id="sac" class="tab-content">
+                    <h3>Strict Avalanche Criterion (SAC)</h3>
+                    <p><strong>Definisi:</strong> SAC memeriksa bahwa mengubah satu bit input menghasilkan perubahan ~50% bit output (untuk setiap output bit). Nilai ideal adalah 50%.</p>
+                    <div id="sac-results" class="results-box"></div>
+                </div>
+
+                <!-- TAB: BIC -->
+                <div id="bic" class="tab-content">
+                    <h3>Bit Independence Criterion (BIC)</h3>
+                    <p><strong>Definisi:</strong> BIC-NL dan BIC-SAC mengukur independensi antar output bits. Semakin tinggi independensi, semakin baik.</p>
+                    <div id="bic-results" class="results-box"></div>
+                </div>
+
+                <!-- TAB: LAP & DAP -->
+                <div id="lap" class="tab-content">
+                    <h3>Linear Approximation Probability (LAP) & Differential Approximation Probability (DAP)</h3>
+                    <p><strong>LAP:</strong> Mengukur probabilitas aproksimasi linear terbaik. Nilai yang lebih kecil lebih baik (kurang dari 1.0).</p>
+                    <p><strong>DAP:</strong> Mengukur probabilitas aproksimasi diferensial terbaik. Nilai yang lebih kecil lebih baik.</p>
+                    <div id="lap-results" class="results-box"></div>
+                </div>
+
+                <!-- TAB: DU & AD -->
+                <div id="du" class="tab-content">
+                    <h3>Differential Uniformity (DU) & Algebraic Degree (AD)</h3>
+                    <p><strong>DU:</strong> Mengukur maximum differential uniformity. Nilai yang lebih kecil lebih baik (ideal DU=2 untuk 8-bit).</p>
+                    <p><strong>AD:</strong> Mengukur derajat aljabar. Nilai yang lebih tinggi lebih baik untuk resistansi terhadap serangan aljabar.</p>
+                    <div id="du-results" class="results-box"></div>
+                </div>
+
+                <!-- TAB: TO & CI -->
+                <div id="to" class="tab-content">
+                    <h3>Transparency Order (TO) & Correlation Immunity (CI)</h3>
+                    <p><strong>TO:</strong> Mengukur transparansi. Nilai yang lebih rendah lebih baik.</p>
+                    <p><strong>CI:</strong> Mengukur resistansi terhadap serangan korelasi. Orde yang lebih tinggi lebih baik.</p>
+                    <div id="to-results" class="results-box"></div>
+                </div>
+
+                <!-- TAB: Details -->
+                <div id="details" class="tab-content">
+                    <h3>Data Detail</h3>
+                    <div id="details-results" class="results-box"></div>
+                </div>
+            </section>
+
+            <section id="error-section" class="error-section" style="display: none;">
+                <p id="error-message"></p>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 S-Box Cryptanalysis Tool | Cryptography Analysis</p>
+        </footer>
+    </div>
+
+    <script src="sbox-analyzer.js"></script>
+</body>
+</html>
