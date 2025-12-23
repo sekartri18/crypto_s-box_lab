@@ -1245,6 +1245,233 @@ function hideError() {
     if (section) section.style.display = 'none';
 }
 
+// ===== S-BOX FILE UPLOAD =====
+
+function triggerSBoxFileUpload() {
+    const fileInput = document.getElementById('sbox-file-upload');
+    fileInput.click();
+}
+
+function handleSBoxFileUpload(event) {
+    try {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Determine file type
+        const isXlsx = file.name.toLowerCase().endsWith('.xlsx');
+        
+        if (isXlsx) {
+            // Check if XLSX library is available
+            if (typeof XLSX === 'undefined') {
+                showError('Excel library belum ter-load. Coba refresh halaman atau gunakan file .txt/.csv');
+                document.getElementById('sbox-file-status').textContent = '❌ Excel library not available';
+                document.getElementById('sbox-file-status').style.color = '#e74c3c';
+                return;
+            }
+            
+            // Handle Excel file
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Get first sheet
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    
+                    // Extract values from sheet
+                    const sbox = extractSBoxFromSheet(worksheet);
+                    
+                    // Validate S-Box
+                    if (!validateSBox(sbox)) {
+                        throw new Error('S-Box tidak valid: harus berisi 256 nilai unik 0-255');
+                    }
+                    
+                    processSBoxSuccess(sbox, file);
+                } catch (err) {
+                    showError('S-Box file error: ' + err.message);
+                    console.error('S-Box parsing error:', err);
+                    document.getElementById('sbox-file-status').textContent = '❌ ' + err.message;
+                    document.getElementById('sbox-file-status').style.color = '#e74c3c';
+                }
+            };
+            
+            reader.onerror = () => {
+                showError('Gagal membaca file');
+                document.getElementById('sbox-file-status').textContent = '❌ Gagal membaca file';
+                document.getElementById('sbox-file-status').style.color = '#e74c3c';
+            };
+            
+            reader.readAsArrayBuffer(file);
+        } else {
+            // Handle text-based files (.txt, .csv)
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const fileContent = e.target.result;
+                    const sbox = parseSBoxFromFile(fileContent);
+                    
+                    // Validate S-Box
+                    if (!validateSBox(sbox)) {
+                        throw new Error('S-Box tidak valid: harus berisi 256 nilai unik 0-255');
+                    }
+                    
+                    processSBoxSuccess(sbox, file);
+                } catch (err) {
+                    showError('S-Box file error: ' + err.message);
+                    console.error('S-Box parsing error:', err);
+                    document.getElementById('sbox-file-status').textContent = '❌ ' + err.message;
+                    document.getElementById('sbox-file-status').style.color = '#e74c3c';
+                }
+            };
+            
+            reader.onerror = () => {
+                showError('Gagal membaca file');
+                document.getElementById('sbox-file-status').textContent = '❌ Gagal membaca file';
+                document.getElementById('sbox-file-status').style.color = '#e74c3c';
+            };
+            
+            reader.readAsText(file);
+        }
+    } catch (err) {
+        showError('File upload error: ' + err.message);
+        console.error('Full error:', err);
+    }
+}
+
+function extractSBoxFromSheet(worksheet) {
+    const values = [];
+    
+    // Try to extract values from the worksheet
+    // First, get all cell references
+    for (const cell in worksheet) {
+        if (cell[0] === '!') continue; // Skip metadata
+        
+        const cellValue = worksheet[cell].v;
+        if (cellValue !== undefined && cellValue !== null) {
+            const num = parseInt(cellValue, 10);
+            if (!isNaN(num)) {
+                values.push(num);
+            }
+        }
+    }
+    
+    // If we found values, validate count
+    if (values.length > 0) {
+        if (values.length !== 256) {
+            throw new Error(`Expected 256 values, found ${values.length} in Excel file`);
+        }
+        return values;
+    }
+    
+    throw new Error('No values found in Excel file');
+}
+
+function processSBoxSuccess(sbox, file) {
+    // Store custom S-Box
+    allSBoxes.custom = sbox;
+    
+    // Generate analysis for custom S-box if SBoxAnalyzer is available
+    if (typeof SBoxAnalyzer !== 'undefined') {
+        try {
+            const customAnalyzer = new SBoxAnalyzer(sbox);
+            const customAnalysis = customAnalyzer.analyze();
+            if (customAnalysis) {
+                allAnalysis.custom = customAnalysis;
+            }
+        } catch (analysisErr) {
+            console.warn('Could not analyze custom S-Box:', analysisErr);
+        }
+    }
+    
+    // Select custom preset
+    const buttons = document.querySelectorAll('.preset-btn');
+    buttons.forEach(b => b.classList.remove('active'));
+    
+    // Find and activate custom button
+    for (let btn of buttons) {
+        if (btn.textContent.includes('Custom')) {
+            btn.classList.add('active');
+            break;
+        }
+    }
+    
+    // Update matrix summary
+    document.getElementById('summary-matrix').textContent = `Custom (${file.name})`;
+    
+    // Update file status
+    const statusEl = document.getElementById('sbox-file-status');
+    statusEl.textContent = `✓ Loaded: ${file.name} (256 values)`;
+    statusEl.style.color = '#27ae60';
+    
+    hideError();
+}
+
+function parseSBoxFromFile(fileContent) {
+    // Try different parsing formats
+    
+    // Format 1: Space or comma separated hex/decimal values
+    let values = [];
+    
+    // Try parsing as hex with 0x prefix (e.g., "0x00 0x01 0x02...")
+    let hexMatches = fileContent.match(/0x[0-9a-fA-F]{1,2}/g);
+    if (hexMatches && hexMatches.length === 256) {
+        values = hexMatches.map(h => parseInt(h, 16));
+    }
+    
+    // Try parsing as decimal separated by spaces, commas, or newlines
+    if (values.length === 0) {
+        const tokens = fileContent.replace(/[,;\s\r\n]+/g, ' ').trim().split(' ').filter(t => t);
+        const parsed = tokens.map(t => {
+            const num = parseInt(t, 10);
+            if (isNaN(num) || num < 0 || num > 255) {
+                throw new Error(`Invalid value: ${t} (must be 0-255)`);
+            }
+            return num;
+        });
+        
+        if (parsed.length === 256) {
+            values = parsed;
+        }
+    }
+    
+    // Try parsing as space-separated decimal without checking count first
+    if (values.length === 0) {
+        const tokens = fileContent.replace(/[\r\n]+/g, ' ').trim().split(/\s+/).filter(t => t);
+        const parsed = tokens.map(t => {
+            const num = parseInt(t, 10);
+            if (isNaN(num) || num < 0 || num > 255) {
+                throw new Error(`Invalid value: ${t} (must be 0-255)`);
+            }
+            return num;
+        });
+        values = parsed;
+    }
+    
+    // Check length
+    if (values.length !== 256) {
+        throw new Error(`Expected 256 values, found ${values.length}`);
+    }
+    
+    return values;
+}
+
+function validateSBox(sbox) {
+    // Check if it's an array of 256 unique values from 0-255
+    if (!Array.isArray(sbox) || sbox.length !== 256) return false;
+    
+    const seen = new Set();
+    for (let i = 0; i < 256; i++) {
+        const val = sbox[i];
+        if (!Number.isInteger(val) || val < 0 || val > 255) return false;
+        if (seen.has(val)) return false; // Not a permutation
+        seen.add(val);
+    }
+    
+    return true;
+}
+
 // ===== MATRIX UTILITIES (from sbox-constructor) =====
 
 function parseBinaryMatrix8(text) {
@@ -1276,4 +1503,10 @@ function validateBinaryMatrix8(matrix) {
 
 document.addEventListener('DOMContentLoaded', () => {
     resetParameters();
+    
+    // Setup S-Box file upload handler
+    const fileInput = document.getElementById('sbox-file-upload');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleSBoxFileUpload);
+    }
 });

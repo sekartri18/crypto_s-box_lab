@@ -28,7 +28,14 @@ python3 -m http.server 8000
 - Click “Generate & Analyze” to build K44 and AES S-Boxes and see metrics.
 - In Text Lab, enter plaintext + key, choose S-Box, click Encrypt/Decrypt.
 - In Image Lab, upload image, choose S-Box, enter key, click Encrypt; then Decrypt.
-
+## **S-Box File Upload** (New Feature)
+- Go to **Research Parameters** → **Upload S-Box File**
+- Click **📁 Upload File** to load a custom S-Box from a file
+- File format: 
+  - **.txt, .csv**: 256 decimal or hex (0x-prefixed) values, space/comma/newline separated
+  - **.xlsx**: Excel spreadsheet with 256 S-Box values (akan otomatis diekstrak)
+- Example files: `sample-sbox.txt`, `sample-sbox.tsv` included
+- Once loaded, the Custom preset is automatically selected and ready for encryption/decryption
 ## **Usage Notes**
 - **S-Box Input:** 256 unique values, 0–255; hex `0x..` or decimals acceptable.
 - **Affine Formula:** S(x) = M × x⁻¹ ⊕ C over GF(2^8) with irreducible polynomial 0x11b.

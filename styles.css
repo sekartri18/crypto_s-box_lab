@@ -695,6 +695,18 @@ section > p {
     border: 1px solid var(--border-color);
 }
 
+.sbox-upload {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.sbox-upload button {
+    margin: 0;
+}
+
 .matrix-display {
     font-family: 'Courier New', monospace;
     font-size: 11px;

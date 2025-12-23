@@ -163,6 +163,16 @@
                         </div>
                     </div>
 
+                    <!-- S-Box File Upload -->
+                    <div class="param-group">
+                        <label>Upload S-Box File:</label>
+                        <div class="sbox-upload">
+                            <input type="file" id="sbox-file-upload" accept=".txt,.csv,.xlsx" style="display: none;">
+                            <button class="btn btn-secondary" onclick="triggerSBoxFileUpload()">📁 Upload File</button>
+                            <small id="sbox-file-status" style="display: block; margin-top: 8px; color: #666;">Format: .txt, .csv, .xlsx | Hex values atau 256 nilai desimal</small>
+                        </div>
+                    </div>
+
                     <!-- Constant Vector -->
                     <div class="param-group">
                         <label>Constant Vector (C):</label>
@@ -403,5 +413,7 @@
     <script src="sbox-constructor.js"></script>
     <script src="image-encryption.js"></script>
     <script src="ui-extension.js"></script>
+    <!-- SheetJS for Excel file support -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </body>
 </html>
