@@ -1252,42 +1252,54 @@ function triggerSBoxFileUpload() {
     fileInput.click();
 }
 
-function handleSBoxFileUpload(event) {
+async function ensureXLSXLoaded() {
+    if (typeof XLSX !== 'undefined') return true;
+    // Dynamically load if not present (GitHub Pages caching/CDN issues)
+    return new Promise((resolve, reject) => {
+        const existing = document.querySelector('script[data-xlsx-fallback]');
+        if (existing) {
+            existing.addEventListener('load', () => resolve(true));
+            existing.addEventListener('error', () => reject(new Error('Gagal memuat XLSX')));
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+        script.dataset.xlsxFallback = 'true';
+        script.onload = () => resolve(true);
+        script.onerror = () => reject(new Error('Gagal memuat XLSX fallback'));
+        document.head.appendChild(script);
+    });
+}
+
+async function handleSBoxFileUpload(event) {
     try {
         const file = event.target.files[0];
         if (!file) return;
-        
-        // Determine file type
         const isXlsx = file.name.toLowerCase().endsWith('.xlsx');
         
         if (isXlsx) {
-            // Check if XLSX library is available
-            if (typeof XLSX === 'undefined') {
-                showError('Excel library belum ter-load. Coba refresh halaman atau gunakan file .txt/.csv');
-                document.getElementById('sbox-file-status').textContent = '❌ Excel library not available';
-                document.getElementById('sbox-file-status').style.color = '#e74c3c';
+            try {
+                await ensureXLSXLoaded();
+            } catch (loadErr) {
+                showError('Excel library belum ter-load. Coba refresh atau pakai .txt/.csv');
+                const statusEl = document.getElementById('sbox-file-status');
+                statusEl.textContent = '❌ Excel library not available';
+                statusEl.style.color = '#e74c3c';
+                console.error(loadErr);
                 return;
             }
-            
-            // Handle Excel file
+
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    // Get first sheet
                     const sheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[sheetName];
-                    
-                    // Extract values from sheet
                     const sbox = extractSBoxFromSheet(worksheet);
-                    
-                    // Validate S-Box
                     if (!validateSBox(sbox)) {
                         throw new Error('S-Box tidak valid: harus berisi 256 nilai unik 0-255');
                     }
-                    
                     processSBoxSuccess(sbox, file);
                 } catch (err) {
                     showError('S-Box file error: ' + err.message);
@@ -1296,27 +1308,21 @@ function handleSBoxFileUpload(event) {
                     document.getElementById('sbox-file-status').style.color = '#e74c3c';
                 }
             };
-            
             reader.onerror = () => {
                 showError('Gagal membaca file');
                 document.getElementById('sbox-file-status').textContent = '❌ Gagal membaca file';
                 document.getElementById('sbox-file-status').style.color = '#e74c3c';
             };
-            
             reader.readAsArrayBuffer(file);
         } else {
-            // Handle text-based files (.txt, .csv)
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
                     const fileContent = e.target.result;
                     const sbox = parseSBoxFromFile(fileContent);
-                    
-                    // Validate S-Box
                     if (!validateSBox(sbox)) {
                         throw new Error('S-Box tidak valid: harus berisi 256 nilai unik 0-255');
                     }
-                    
                     processSBoxSuccess(sbox, file);
                 } catch (err) {
                     showError('S-Box file error: ' + err.message);
@@ -1325,13 +1331,11 @@ function handleSBoxFileUpload(event) {
                     document.getElementById('sbox-file-status').style.color = '#e74c3c';
                 }
             };
-            
             reader.onerror = () => {
                 showError('Gagal membaca file');
                 document.getElementById('sbox-file-status').textContent = '❌ Gagal membaca file';
                 document.getElementById('sbox-file-status').style.color = '#e74c3c';
             };
-            
             reader.readAsText(file);
         }
     } catch (err) {
