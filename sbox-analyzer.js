@@ -320,7 +320,7 @@ class SBoxAnalyzer {
             }
             
             // TO approximation based on balance deviation from 128
-            const to = Math.abs(balance - 128);
+            const to = Math.abs(balance - 128) / 256;  // Normalize to 0-1
             maxTO = Math.max(maxTO, to);
         }
         
@@ -358,6 +358,84 @@ class SBoxAnalyzer {
         return maxCI;
     }
 
+    // Calculate Differential Algebraic Probability (DAP)
+    // DAP = Differential Uniformity / 256
+    calculateDAP() {
+        const du = this.calculateDifferentialUniformity();
+        return du.maxDU / 256;
+    }
+
+    // Calculate Max Cycle Length (MCL)
+    calculateMaxCycleLength() {
+        const visited = new Set();
+        let maxCycleLength = 0;
+        
+        for (let start = 0; start < 256; start++) {
+            if (visited.has(start)) continue;
+            
+            let current = start;
+            let cycleLength = 0;
+            const cycleStart = new Set();
+            
+            while (!cycleStart.has(current)) {
+                cycleStart.add(current);
+                visited.add(current);
+                current = this.sbox[current];
+                cycleLength++;
+            }
+            
+            // Find where cycle actually starts
+            let cycleStart2 = current;
+            let realCycleLength = 1;
+            current = this.sbox[current];
+            
+            while (current !== cycleStart2) {
+                current = this.sbox[current];
+                realCycleLength++;
+            }
+            
+            maxCycleLength = Math.max(maxCycleLength, realCycleLength);
+        }
+        
+        return maxCycleLength;  // Return as raw integer (0-256)
+    }
+
+    // Count Fixed Points
+    countFixedPoints() {
+        let count = 0;
+        for (let x = 0; x < 256; x++) {
+            if (this.sbox[x] === x) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    // Calculate Strength Value (SV)
+    calculateStrengthValue() {
+        // SV = sqrt(sum of all LAP probabilities squared)
+        let sumSquares = 0;
+        
+        for (let inputMask = 0; inputMask < 256; inputMask++) {
+            for (let outputMask = 0; outputMask < 256; outputMask++) {
+                let count = 0;
+                
+                for (let x = 0; x < 256; x++) {
+                    const y = this.sbox[x];
+                    const xDotMask = this.hammingWeight(x & inputMask) & 1;
+                    const yDotMask = this.hammingWeight(y & outputMask) & 1;
+                    
+                    if (xDotMask === yDotMask) count++;
+                }
+                
+                const lap = (count - 128) / 256;
+                sumSquares += lap * lap;
+            }
+        }
+        
+        return Math.sqrt(sumSquares / 65536);
+    }
+
     // Perform complete analysis
     analyze() {
         return {
@@ -368,7 +446,11 @@ class SBoxAnalyzer {
             lap: this.calculateLAP(),
             ad: this.calculateAlgebraicDegree(),
             to: this.calculateTransparencyOrder(),
-            ci: this.calculateCorrelationImmunity()
+            ci: this.calculateCorrelationImmunity(),
+            dap: this.calculateDAP(),
+            maxCycleLength: this.calculateMaxCycleLength(),
+            fixedPoints: this.countFixedPoints(),
+            strengthValue: this.calculateStrengthValue()
         };
     }
 }

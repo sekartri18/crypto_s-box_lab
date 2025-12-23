@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Test S-Box Constructor</title>
+</head>
+<body>
+    <h1>Test S-Box Constructor</h1>
+    <button onclick="testConstruction()">Test Construction</button>
+    <pre id="result"></pre>
+
+    <script src="sbox-constructor.js"></script>
+    <script>
+        function testConstruction() {
+            const resultDiv = document.getElementById('result');
+            try {
+                // Test if classes are available
+                resultDiv.innerHTML = 'Testing class availability...\n';
+                
+                if (typeof GaloisField === 'undefined') {
+                    resultDiv.innerHTML += '❌ GaloisField not loaded\n';
+                    return;
+                }
+                resultDiv.innerHTML += '✅ GaloisField loaded\n';
+                
+                if (typeof AESInverse === 'undefined') {
+                    resultDiv.innerHTML += '❌ AESInverse not loaded\n';
+                    return;
+                }
+                resultDiv.innerHTML += '✅ AESInverse loaded\n';
+                
+                if (typeof AffineTransformation === 'undefined') {
+                    resultDiv.innerHTML += '❌ AffineTransformation not loaded\n';
+                    return;
+                }
+                resultDiv.innerHTML += '✅ AffineTransformation loaded\n';
+                
+                if (typeof SBoxConstructor === 'undefined') {
+                    resultDiv.innerHTML += '❌ SBoxConstructor not loaded\n';
+                    return;
+                }
+                resultDiv.innerHTML += '✅ SBoxConstructor loaded\n\n';
+                
+                // Test construction
+                resultDiv.innerHTML += 'Testing S-Box construction...\n';
+                const constructor = new SBoxConstructor();
+                const sbox = constructor.constructSBox(0, 0);
+                
+                resultDiv.innerHTML += '✅ S-Box constructed successfully!\n';
+                resultDiv.innerHTML += `First 10 values: ${sbox.slice(0, 10).map(v => '0x' + v.toString(16).toUpperCase()).join(' ')}\n`;
+                resultDiv.innerHTML += `Total values: ${sbox.length}\n`;
+                
+                // Check if it's a valid permutation
+                const sorted = [...sbox].sort((a, b) => a - b);
+                let isValid = true;
+                for (let i = 0; i < 256; i++) {
+                    if (sorted[i] !== i) {
+                        isValid = false;
+                        break;
+                    }
+                }
+                resultDiv.innerHTML += `Valid permutation: ${isValid ? '✅ Yes' : '❌ No'}\n`;
+                
+            } catch (error) {
+                resultDiv.innerHTML += `\n❌ Error: ${error.message}\n`;
+                resultDiv.innerHTML += `Stack: ${error.stack}\n`;
+            }
+        }
+    </script>
+</body>
+</html>

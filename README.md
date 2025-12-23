@@ -1,188 +1,72 @@
-# S-Box Cryptanalysis Tool
+# 🔐 Crypto S-Box Lab — All-in-One README
 
-Alat web interaktif untuk analisis dan pengujian kualitas kriptografi S-Box (Substitution Box) dengan menggunakan 9 kriteria pengujian.
+Single-page web app to construct, analyze, and test S-Boxes (AES-style affine matrices) and try text/image encryption, with clear security metrics.
 
-## 🎯 Fitur Utama
+## **Highlights**
+- **S-Box Generation:** Affine matrix + constant over GF(2^8), with AES and K44 presets.
+- **Cryptanalysis:** NL, SAC, BIC-NL/BIC-SAC, DU, AD, LAP, TO, CI with quick status.
+- **Image Lab:** Encrypt/decrypt images using selected S-Box + key; entropy/NPCR/UACI/correlation.
+- **Comparison:** Side-by-side K44 vs AES metrics and winner counts.
 
-### 1. **Nonlinearity (NL)**
-Mengukur jarak minimum antara fungsi Boolean output dan semua fungsi linear affine.
-- Nilai yang lebih tinggi menunjukkan resistansi lebih baik terhadap serangan linear
-- Untuk setiap output bit, dihitung jarak Hamming ke fungsi linear terdekat
-- Nilai ideal: > 100 untuk 8-bit S-Box
-
-### 2. **Strict Avalanche Criterion (SAC)**
-Mengukur apakah mengubah satu bit input menyebabkan perubahan ~50% bit output.
-- Untuk setiap kombinasi input bit dan output bit
-- Menghitung persentase perubahan output
-- Nilai ideal: 50% (tolerance ±10%)
-
-### 3. **Bit Independence Criterion - Nonlinearity (BIC-NL)**
-Nonlinearity dari XOR dua output bits.
-- Mengukur independensi antar output bits
-- Setiap pasangan output bits dianalisis
-- Nilai yang lebih tinggi menunjukkan independensi lebih baik
-
-### 4. **Bit Independence Criterion - SAC (BIC-SAC)**
-SAC dari XOR dua output bits.
-- Mengukur avalanche properties dari XOR output bits
-- Nilai ideal tetap 50%
-- Menunjukkan kualitas independensi bit
-
-### 5. **Linear Approximation Probability (LAP)**
-Probabilitas aproksimasi linear terbaik.
-- Mengukur ketahanan terhadap linear cryptanalysis
-- Mencari kombinasi input/output mask dengan probabilitas tertinggi
-- Nilai yang lebih kecil lebih baik (ideal < 0.3)
-
-### 6. **Differential Approximation Probability (DAP)**
-Mengukur probabilitas aproksimasi diferensial.
-- Berkaitan dengan differential cryptanalysis
-- Dihitung dari differential uniformity
-
-### 7. **Differential Uniformity (DU)**
-Maximum output difference frequency untuk input difference.
-- Mengukur ketahanan terhadap differential cryptanalysis
-- Untuk setiap input difference, hitung output difference distribution
-- Nilai ideal: DU ≤ 4 untuk 8-bit S-Box
-
-### 8. **Algebraic Degree (AD)**
-Derajat aljabar fungsi Boolean output.
-- Menggunakan Möbius transform
-- Nilai yang lebih tinggi memberikan resistansi lebih baik
-- Nilai maksimal untuk 8-bit: 8
-
-### 9. **Transparency Order (TO)**
-Mengukur transparansi fungsi Boolean.
-- Berdasarkan balancing properties
-- Nilai yang lebih rendah lebih baik
-- TO = 0 berarti perfect balanced function
-
-### 10. **Correlation Immunity (CI)**
-Mengukur resistansi terhadap serangan korelasi.
-- Order correlation immunity yang lebih tinggi lebih baik
-- Menunjukkan independensi terhadap subset variabel input
-- Ideal: Order ≥ 1
-
-## 📋 Cara Penggunaan
-
-### 1. **Input S-Box**
-Anda dapat memasukkan S-Box dengan beberapa format:
-- **Hexadecimal dengan prefix 0x**: `0x63 0x7c 0x77 0x7b ...`
-- **Decimal**: `99 124 119 123 ...`
-- **Dengan pemisah koma/titik koma**: `99,124,119,123,...`
-- **Upload file**: File text dengan nilai S-Box
-
-### 2. **Validasi**
-- S-Box harus memiliki 256 nilai (0-255)
-- S-Box harus merupakan permutasi valid (semua nilai 0-255 harus ada)
-
-### 3. **Analisis**
-Klik tombol "Analisis S-Box" untuk memulai analisis lengkap
-
-### 4. **Hasil**
-Hasil ditampilkan dalam tab-tab:
-- **Ringkasan**: Overview hasil analisis
-- **Nonlinearity**: Detail NL per output bit
-- **SAC**: Tabel SAC lengkap
-- **BIC-NL & BIC-SAC**: Independensi bit
-- **LAP & DAP**: Linear dan differential approximation
-- **DU & AD**: Differential uniformity dan algebraic degree
-- **TO & CI**: Transparency order dan correlation immunity
-- **Detail**: JSON lengkap semua hasil
-
-## 📊 Contoh: AES S-Box
-
-Website menyediakan tombol "Contoh (AES)" untuk memuat standard AES S-Box sebagai referensi:
-
+## **Setup**
+- **Direct:** Open [index.html](index.html) in a modern browser.
+- **Local server (Windows):**
+```powershell
+cd c:\Users\LENOVO\kriptografi
+python -m http.server 8000
+# Open: http://localhost:8000/index.html
 ```
-63 7c 77 7b f2 6b 6f c5 30 01 67 2b fe d7 ab 76
-ca 82 c9 7d fa 59 47 f0 ad d4 a2 af 9c a4 72 c0
-...
+- **Local server (Linux/Mac):**
+```bash
+cd ~/kriptografi
+python3 -m http.server 8000
+# Open: http://localhost:8000/index.html
 ```
 
-## 🔐 Interpretasi Hasil Kriptografi
+## **Quick Start**
+- Open [index.html](index.html), go to Control Panel.
+- Click “Generate & Analyze” to build K44 and AES S-Boxes and see metrics.
+- In Text Lab, enter plaintext + key, choose S-Box, click Encrypt/Decrypt.
+- In Image Lab, upload image, choose S-Box, enter key, click Encrypt; then Decrypt.
 
-### Untuk S-Box yang Baik:
-- **NL**: > 100 (rata-rata per output bit)
-- **SAC**: 45-55% (tolerance dari 50%)
-- **BIC-NL**: Nilai tinggi untuk semua pasangan bit
-- **BIC-SAC**: Mendekati 50% untuk semua kombinasi
-- **LAP**: Maksimal < 0.3
-- **DU**: ≤ 4 (ideal)
-- **AD**: ≥ 6 (semakin tinggi semakin baik)
-- **TO**: Rendah (< 50)
-- **CI**: ≥ 1 (order correlation immunity)
+## **Usage Notes**
+- **S-Box Input:** 256 unique values, 0–255; hex `0x..` or decimals acceptable.
+- **Affine Formula:** S(x) = M × x⁻¹ ⊕ C over GF(2^8) with irreducible polynomial 0x11b.
+- **Image Cipher:** Key-mixed substitution with a key-derived permutation; must use the same key and S-Box for decryption.
 
-## 🛠️ Implementasi Teknis
+## **Tabs & Outputs**
+- **Generated S-Boxes:** Hex tables for K44 and AES.
+- **Metrics:**
+    - **NL:** Higher is better; AES ≈ 112.
+    - **SAC/BIC:** Target ≈ 0.5; lower deviation is better.
+    - **DU:** Ideal = 4; **AD:** ideal ≈ 7.
+    - **LAP/TO/CI:** Lower LAP/TO, higher CI preferred.
+- **Steps:** Guided summary and recommendations.
+- **Comparison:** Winner tallies per metric for K44 vs AES.
 
-### File-File:
-- `index.html` - Struktur HTML dan UI
-- `styles.css` - Styling dan responsive design
-- `sbox-analyzer.js` - Logika analisis dan perhitungan
+## **Image Metrics Expectations**
+- **Entropy:** ≈ 8.0 (excellent).
+- **NPCR:** > 99% (near total pixel changes).
+- **UACI:** ≈ 33.4% (uniform intensity changes).
+- **Correlation (enc):** < 0.05 (low adjacency correlation).
 
-### Bahasa:
-- HTML5
-- CSS3 (dengan responsive design)
-- JavaScript ES6+
+## **Troubleshooting**
+- **Decrypt looks corrupted:** Ensure the same key and S-Box used for encryption; the app enforces this and shows guidance.
+- **S-Box errors:** Must be a 256-length permutation in [0,255].
+- **Server issues:** Use Python HTTP server or open directly.
 
-### Browser Support:
-- Chrome/Chromium
-- Firefox
-- Safari
-- Edge
+## **File Map**
+- **Core UI:** [index.html](index.html), [styles.css](styles.css).
+- **S-Box math:** [sbox-constructor.js](sbox-constructor.js) (GF(2^8), affine transform).
+- **Analysis:** [sbox-analyzer.js](sbox-analyzer.js) (metrics computation).
+- **Image:** [image-encryption.js](image-encryption.js) (cipher + metrics), [ui-extension.js](ui-extension.js) (wiring & UX).
+- **Helpers:** [run-server.bat](run-server.bat), [run-server.sh](run-server.sh).
 
-## 📐 Formula dan Teori
+## **References**
+- NIST FIPS 197 (AES). Daemen & Rijmen, “The Design of Rijndael.”
+- Avalanche, BIC, Differential/Linear Cryptanalysis literature.
+- Springer 2024 exploration of affine matrices for AES S-Box.
 
-### Nonlinearity:
-```
-NL = min distance dari output bit ke semua fungsi linear affine
-    = min(Hamming distance(f, L) untuk semua L linear affine)
-```
-
-### SAC:
-```
-SAC(i,j) = Σ |f(x) ⊕ f(x ⊕ e_i) bit j| / 256
-          untuk i=bit input, j=bit output
-```
-
-### Algebraic Degree:
-Menggunakan Möbius transform:
-```
-M[S] = ⊕{x: x⊆S} f(x)
-Degree = max{|S|: M[S] ≠ 0}
-```
-
-### Differential Uniformity:
-```
-δ_f(a,b) = #{x: f(x) ⊕ f(x⊕a) = b}
-DU = max δ_f(a,b) untuk a,b ≠ 0
-```
-
-## 📚 Referensi
-
-1. **NIST FIPS 197** - Advanced Encryption Standard (AES)
-2. **SAC** - Seberry, Pieprzyk (1989)
-3. **BIC** - Webster, Tavares (1985)
-4. **Differential Cryptanalysis** - Biham, Shamir (1990)
-5. **Linear Cryptanalysis** - Matsui (1993)
-6. **Correlation Immunity** - Siegenthaler (1984)
-
-## 🔬 Catatan Penelitian
-
-Alat ini dirancang untuk:
-- Analisis kualitas S-Box dalam desain cipher
-- Penelitian cryptography dan cryptanalysis
-- Pendidikan cryptography
-- Verifikasi implementasi S-Box baru
-
-## ⚠️ Disclaimer
-
-Alat ini untuk tujuan pendidikan dan penelitian. Pastikan implementasi cipher Anda mempertimbangkan semua aspek keamanan, bukan hanya S-Box.
-
-## 👤 Author
-
-Created for Cryptography Research and Education
-
----
-
-**Catatan**: Untuk analisis real-time yang lebih cepat dengan dataset besar, pertimbangkan penggunaan bahasa yang lebih cepat seperti C/C++ atau Python dengan optimization.
+## **Notes**
+- All processing is client-side; no data leaves your machine.
+- Educational and research use; not hardened for production.

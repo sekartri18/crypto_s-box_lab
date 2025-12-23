@@ -3,156 +3,405 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S-Box Analysis Tool</title>
+    <title>Crypto S-Box Lab</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <nav class="top-nav">
+        <div class="brand"><span class="brand-mark"></span>Crypto S-Box Lab</div>
+        <div class="nav-links">
+            <a href="#landing">Home</a>
+            <a href="#research-panel">Generate</a>
+            <a href="#control-panel">Analyze</a>
+            <a href="#text-encryption">Text</a>
+            <a href="#image-lab">Image</a>
+            <a href="about.html">About</a>
+        </div>
+        <a class="nav-cta" href="#encryption-section">Mulai</a>
+    </nav>
+
     <div class="container">
         <header>
-            <h1>🔐 S-Box Cryptanalysis Tool</h1>
-            <p>Alat Analisis dan Pengujian Kualitas S-Box (Substitution Box)</p>
+            <h1>🔐 Crypto S-Box Lab</h1>
+            <p>Eksperimen S-Box berbasis affine matrix (Springer 2024): <a href="https://link.springer.com/article/10.1007/s11071-024-10414-3" target="_blank">AES S-box modification using affine matrices exploration</a></p>
         </header>
 
         <main>
-            <section class="input-section">
-                <h2>Input S-Box</h2>
-                <div class="input-group">
-                    <label for="sbox-input">Masukkan nilai S-Box (0-255, spasi atau koma sebagai pemisah):</label>
-                    <textarea id="sbox-input" rows="8" placeholder="Contoh: 0x63 0x7c 0x77 0x7b 0xf2 ...atau copy dari file" class="sbox-textarea"></textarea>
-                    <div class="button-group">
-                        <button onclick="analyzeSBox()" class="btn btn-primary">Analisis S-Box</button>
-                        <button onclick="clearInput()" class="btn btn-secondary">Clear</button>
-                        <input type="file" id="file-input" accept=".txt,.csv" style="display:none;">
-                        <button onclick="document.getElementById('file-input').click()" class="btn btn-secondary">Upload File</button>
+            <section id="landing" class="hero">
+                <div class="hero-text">
+                    <p class="eyebrow">Eksperimen S-Box</p>
+                    <h2>Generate, analisis, lalu uji enkripsi dalam satu halaman</h2>
+                    <p class="hero-sub">Pilih matrix (K44/AES/custom), jalankan analisis 10 metrik, dan coba enkripsi/dekripsi teks serta gambar tanpa pindah halaman.</p>
+                    <div class="hero-points">
+                        <div class="hero-point">
+                            <div class="point-icon">⚡</div>
+                            <div>
+                                <div class="point-title">Preset K44/AES</div>
+                                <div class="point-desc">Atau input manual matrix sendiri</div>
+                            </div>
+                        </div>
+                        <div class="hero-point">
+                            <div class="point-icon">📊</div>
+                            <div>
+                                <div class="point-title">10 metrik otomatis</div>
+                                <div class="point-desc">Entropy, NPCR, UACI, SAC, dkk.</div>
+                            </div>
+                        </div>
+                        <div class="hero-point">
+                            <div class="point-icon">🧪</div>
+                            <div>
+                                <div class="point-title">Text & Image Lab</div>
+                                <div class="point-desc">Enkripsi/dekripsi tanpa pindah halaman</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="mock-card">
+                        <div class="mock-header">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                            <span class="mock-title">S-Box Metrics Snapshot</span>
+                        </div>
+                        <div class="mock-body">
+                            <div class="mock-row">
+                                <span class="label">Entropy</span>
+                                <span class="pill good">7.98</span>
+                            </div>
+                            <div class="mock-row">
+                                <span class="label">NPCR</span>
+                                <span class="pill good">99.60%</span>
+                            </div>
+                            <div class="mock-row">
+                                <span class="label">UACI</span>
+                                <span class="pill info">33.4%</span>
+                            </div>
+                            <div class="mock-bars">
+                                <div class="bar bar-1"></div>
+                                <div class="bar bar-2"></div>
+                                <div class="bar bar-3"></div>
+                                <div class="bar bar-4"></div>
+                            </div>
+                            <div class="mock-footer">Ready to encrypt text & image ➜</div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <section class="results-section" id="results-section" style="display: none;">
-                <h2>Hasil Analisis</h2>
-                
-                <div class="tabs">
-                    <button class="tab-btn active" onclick="switchTab('overview')">Ringkasan</button>
-                    <button class="tab-btn" onclick="switchTab('steps')">📋 Steps</button>
-                    <button class="tab-btn" onclick="switchTab('nl')">Nonlinearity (NL)</button>
-                    <button class="tab-btn" onclick="switchTab('sac')">SAC</button>
-                    <button class="tab-btn" onclick="switchTab('bic')">BIC-NL & BIC-SAC</button>
-                    <button class="tab-btn" onclick="switchTab('lap')">LAP & DAP</button>
-                    <button class="tab-btn" onclick="switchTab('du')">DU & AD</button>
-                    <button class="tab-btn" onclick="switchTab('to')">TO & CI</button>
-                    <button class="tab-btn" onclick="switchTab('details')">Detail</button>
+            <section class="quick-links">
+                <div class="panel-title">Pintasan</div>
+                <div class="feature-menu">
+                    <a class="feature-card" href="#research-panel">
+                        <div class="feature-icon">⚙️</div>
+                        <div>
+                            <div class="feature-title">Matrix</div>
+                            <div class="feature-sub">Pilih preset atau custom</div>
+                        </div>
+                    </a>
+                    <a class="feature-card" href="#control-panel">
+                        <div class="feature-icon">📊</div>
+                        <div>
+                            <div class="feature-title">Generate & Metrik</div>
+                            <div class="feature-sub">Analisis otomatis</div>
+                        </div>
+                    </a>
+                    <a class="feature-card" href="#text-encryption">
+                        <div class="feature-icon">🔒</div>
+                        <div>
+                            <div class="feature-title">Text Lab</div>
+                            <div class="feature-sub">Encrypt / Decrypt</div>
+                        </div>
+                    </a>
+                    <a class="feature-card" href="#image-lab">
+                        <div class="feature-icon">🖼️</div>
+                        <div>
+                            <div class="feature-title">Image Lab</div>
+                            <div class="feature-sub">Encrypt + histogram</div>
+                        </div>
+                    </a>
                 </div>
+            </section>
+            <!-- SECTION 1: RESEARCH PARAMETERS PANEL -->
+            <section id="research-panel" class="research-panel">
+                <h2>📋 Research Parameters</h2>
+                <p>Sesuaikan parameter S-box generation</p>
 
-                <!-- TAB: Overview -->
-                <div id="overview" class="tab-content active">
-                    <h3>Ringkasan Analisis</h3>
-                    <div class="summary-grid">
-                        <div class="metric-card" style="background-color: #e3f2fd;">
-                            <h4>Nonlinearity (NL)</h4>
-                            <p class="metric-value" id="nl-avg">-</p>
-                            <p class="metric-unit">Output bits</p>
-                        </div>
-                        <div class="metric-card" style="background-color: #f3e5f5;">
-                            <h4>SAC - Min</h4>
-                            <p class="metric-value" id="sac-min">-</p>
-                            <p class="metric-unit">%</p>
-                        </div>
-                        <div class="metric-card" style="background-color: #f3e5f5;">
-                            <h4>SAC - Max</h4>
-                            <p class="metric-value" id="sac-max">-</p>
-                            <p class="metric-unit">%</p>
-                        </div>
-                        <div class="metric-card" style="background-color: #e8f5e9;">
-                            <h4>Differential Uniformity</h4>
-                            <p class="metric-value" id="du-value">-</p>
-                            <p class="metric-unit">Maximum</p>
-                        </div>
-                        <div class="metric-card" style="background-color: #fff3e0;">
-                            <h4>Algebraic Degree</h4>
-                            <p class="metric-value" id="ad-value">-</p>
-                            <p class="metric-unit">bits</p>
-                        </div>
-                        <div class="metric-card" style="background-color: #fce4ec;">
-                            <h4>Correlation Immunity</h4>
-                            <p class="metric-value" id="ci-value">-</p>
-                            <p class="metric-unit">Order</p>
+                <div class="parameters-grid">
+                    <!-- Matrix Selection -->
+                    <div class="param-group">
+                        <label>Affine Transformation Matrix:</label>
+                        <div class="matrix-presets">
+                            <button class="preset-btn active" onclick="selectMatrixPreset('paper-standard')">
+                                <strong>Paper Standard</strong><br>
+                                <small>K44, K43, K45</small>
+                            </button>
+                            <button class="preset-btn" onclick="selectMatrixPreset('aes')">
+                                <strong>AES</strong><br>
+                                <small>Standard AES</small>
+                            </button>
+                            <button class="preset-btn" onclick="selectMatrixPreset('custom')">
+                                <strong>Custom</strong><br>
+                                <small>Input manual</small>
+                            </button>
                         </div>
                     </div>
-                    <div id="summary-text" class="summary-text"></div>
+
+                    <!-- Matrix Editor -->
+                    <div class="param-group" id="matrix-editor-group">
+                        <label>Current Matrix:</label>
+                        <div class="matrix-editor">
+                            <div id="matrix-display" class="matrix-display"></div>
+                            <button class="btn btn-secondary" onclick="toggleMatrixEdit()">✏️ Edit</button>
+                        </div>
+                        <div id="matrix-edit" style="display:none;" class="matrix-edit">
+                            <textarea id="matrix-input" rows="10" placeholder="Masukkan 8 baris, masing-masing 8 bit (0/1)&#10;Contoh:&#10;10001111&#10;11000111&#10;..."></textarea>
+                            <div class="button-group">
+                                <button class="btn btn-primary" onclick="applyMatrixEdit()">✓ Apply</button>
+                                <button class="btn btn-secondary" onclick="toggleMatrixEdit()">✗ Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Constant Vector -->
+                    <div class="param-group">
+                        <label>Constant Vector (C):</label>
+                        <div class="constant-input">
+                            <input id="constant-value" type="text" value="0x63" placeholder="Hex/decimal">
+                            <small id="constant-display">Current: 0x63 (99)</small>
+                        </div>
+                        <div class="quick-presets">
+                            <label>Quick Presets:</label>
+                            <div class="preset-buttons">
+                                <button class="btn btn-small" onclick="setConstant('0x63')">0x63</button>
+                                <button class="btn btn-small" onclick="setConstant('0x00')">0x00</button>
+                                <button class="btn btn-small" onclick="setConstant('0xFF')">0xFF</button>
+                                <button class="btn btn-small" onclick="setConstant('0xAA')">0xAA</button>
+                                <button class="btn btn-small" onclick="setConstant('0x55')">0x55</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Parameters Summary -->
+                    <div class="param-group">
+                        <label>Active Parameters:</label>
+                        <div class="param-summary">
+                            <p><strong>Matrix:</strong> <span id="summary-matrix">K44 (Best Performer)</span></p>
+                            <p><strong>C:</strong> <span id="summary-constant">0x63</span></p>
+                            <p><strong>Formula:</strong> S(x) = M × x<sup>-1</sup> ⊕ C</p>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- TAB: Steps -->
-                <div id="steps" class="tab-content">
-                    <h3>📋 Proses Step-by-Step Analisis S-Box</h3>
-                    <p><strong>Panduan lengkap tahapan analisis kualitas S-Box Anda</strong></p>
+                <div class="button-group" style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="resetParameters()">↺ Reset</button>
+                </div>
+            </section>
+
+            <!-- SECTION 2: CONTROL PANEL -->
+            <section id="control-panel" class="control-panel">
+                <h2>⚙️ Control Panel</h2>
+                <p>Generate dan analisis S-box menggunakan multiple affine matrices dengan 10 tes kriptografi lengkap</p>
+
+                <div class="control-actions">
+                    <button class="btn btn-large btn-primary" onclick="generateAndAnalyze()">
+                        ▶️ Generate & Analyze
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearAnalysis()">Clear</button>
+                </div>
+
+                <!-- Analysis Results -->
+                <div id="analysis-results" style="display:none;">
+                    <h3>📊 Hasil Analisis S-Box</h3>
                     
-                    <div id="steps-container" class="steps-container">
-                        <!-- Steps akan di-generate oleh JavaScript -->
+                    <!-- S-Box Display -->
+                    <div class="sbox-display">
+                        <h4>Generated S-Boxes (Hexadecimal)</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                            <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; border-left: 4px solid #4caf50;">
+                                <h5 style="margin-top: 0; color: #2e7d32;">Research S-Box (K44)</h5>
+                                <div id="k44-sbox-hex" class="code-block"></div>
+                            </div>
+                            <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; border-left: 4px solid #2196f3;">
+                                <h5 style="margin-top: 0; color: #1565c0;">AES S-Box</h5>
+                                <div id="aes-sbox-hex" class="code-block"></div>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <!-- TAB: Nonlinearity -->
-                <div id="nl" class="tab-content">
-                    <h3>Analisis Nonlinearity (NL)</h3>
-                    <p><strong>Definisi:</strong> Nonlinearity mengukur jarak minimum antara fungsi Boolean dan semua fungsi linear affine. Semakin tinggi nilai NL, semakin resisten terhadap serangan linear.</p>
-                    <div id="nl-results" class="results-box"></div>
-                </div>
+                    <!-- Metrics Tabs -->
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchAnalysisTab('k44-analysis')">K44 S-Box</button>
+                        <button class="tab-btn" onclick="switchAnalysisTab('aes-analysis')">AES S-Box</button>
+                        <button class="tab-btn" onclick="switchAnalysisTab('comparison')">Perbandingan</button>
+                        <button class="tab-btn" onclick="switchAnalysisTab('steps-tab')">Steps</button>
+                    </div>
 
-                <!-- TAB: SAC -->
-                <div id="sac" class="tab-content">
-                    <h3>Strict Avalanche Criterion (SAC)</h3>
-                    <p><strong>Definisi:</strong> SAC memeriksa bahwa mengubah satu bit input menghasilkan perubahan ~50% bit output (untuk setiap output bit). Nilai ideal adalah 50%.</p>
-                    <div id="sac-results" class="results-box"></div>
-                </div>
+                    <!-- Tab: K44 Analysis -->
+                    <div id="k44-analysis" class="tab-content active">
+                        <h3>Research S-Box (K44) - Analisis Kriptografi</h3>
+                        <div id="k44-metrics-grid" class="metrics-grid"></div>
+                    </div>
 
-                <!-- TAB: BIC -->
-                <div id="bic" class="tab-content">
-                    <h3>Bit Independence Criterion (BIC)</h3>
-                    <p><strong>Definisi:</strong> BIC-NL dan BIC-SAC mengukur independensi antar output bits. Semakin tinggi independensi, semakin baik.</p>
-                    <div id="bic-results" class="results-box"></div>
-                </div>
+                    <!-- Tab: AES Analysis -->
+                    <div id="aes-analysis" class="tab-content">
+                        <h3>AES Standard S-Box - Analisis Kriptografi</h3>
+                        <div id="aes-metrics-grid" class="metrics-grid"></div>
+                    </div>
 
-                <!-- TAB: LAP & DAP -->
-                <div id="lap" class="tab-content">
-                    <h3>Linear Approximation Probability (LAP) & Differential Approximation Probability (DAP)</h3>
-                    <p><strong>LAP:</strong> Mengukur probabilitas aproksimasi linear terbaik. Nilai yang lebih kecil lebih baik (kurang dari 1.0).</p>
-                    <p><strong>DAP:</strong> Mengukur probabilitas aproksimasi diferensial terbaik. Nilai yang lebih kecil lebih baik.</p>
-                    <div id="lap-results" class="results-box"></div>
-                </div>
+                    <!-- Tab: Comparison -->
+                    <div id="comparison" class="tab-content">
+                        <h3>Perbandingan: K44 vs AES</h3>
+                        <div id="comparison-table-container"></div>
+                    </div>
 
-                <!-- TAB: DU & AD -->
-                <div id="du" class="tab-content">
-                    <h3>Differential Uniformity (DU) & Algebraic Degree (AD)</h3>
-                    <p><strong>DU:</strong> Mengukur maximum differential uniformity. Nilai yang lebih kecil lebih baik (ideal DU=2 untuk 8-bit).</p>
-                    <p><strong>AD:</strong> Mengukur derajat aljabar. Nilai yang lebih tinggi lebih baik untuk resistansi terhadap serangan aljabar.</p>
-                    <div id="du-results" class="results-box"></div>
-                </div>
-
-                <!-- TAB: TO & CI -->
-                <div id="to" class="tab-content">
-                    <h3>Transparency Order (TO) & Correlation Immunity (CI)</h3>
-                    <p><strong>TO:</strong> Mengukur transparansi. Nilai yang lebih rendah lebih baik.</p>
-                    <p><strong>CI:</strong> Mengukur resistansi terhadap serangan korelasi. Orde yang lebih tinggi lebih baik.</p>
-                    <div id="to-results" class="results-box"></div>
-                </div>
-
-                <!-- TAB: Details -->
-                <div id="details" class="tab-content">
-                    <h3>Data Detail</h3>
-                    <div id="details-results" class="results-box"></div>
+                    <!-- Tab: Step-by-Step -->
+                    <div id="steps-tab" class="tab-content">
+                        <h3>📋 Step-by-Step Analysis</h3>
+                        <div id="steps-container" class="steps-grid"></div>
+                    </div>
                 </div>
             </section>
 
+            <!-- SECTION 3: ENCRYPTION & DECRYPTION -->
+            <section id="encryption-section" class="encryption-section">
+                <h2>🔒 Encryption & Decryption</h2>
+                <p>Enkripsi dan dekripsi pesan menggunakan AES-128 dengan K44, AES, atau Custom S-box</p>
+
+                <div class="encryption-grid">
+                    <!-- Text Encryption -->
+                    <div class="encryption-module" id="text-encryption">
+                        <h3>📝 Text Encryption</h3>
+                        <div class="enc-controls">
+                            <div class="control-group">
+                                <label>S-Box Selection:</label>
+                                <select id="text-sbox-select">
+                                    <option value="research">K44 S-Box (Research)</option>
+                                    <option value="aes">AES S-Box</option>
+                                    <option value="custom">Custom S-Box</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label>Plaintext:</label>
+                                <textarea id="plaintext" rows="4" placeholder="Teks yang akan dienkripsi"></textarea>
+                            </div>
+                            <div class="control-group">
+                                <label>Key (akan dipad/truncated ke 16 bytes):</label>
+                                <input id="encryption-key" type="text" placeholder="Kunci enkripsi">
+                                <small>Key will be automatically adjusted to 16 bytes</small>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-primary" onclick="encryptText()">🔐 Encrypt</button>
+                                <button class="btn btn-secondary" onclick="clearTextEncryption()">Clear</button>
+                            </div>
+                        </div>
+                        <div id="text-result" style="display:none;">
+                            <h4>Hasil:</h4>
+                            <textarea id="text-output" rows="4" readonly></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Text Decryption (right column) -->
+                    <div class="encryption-module" id="text-decryption">
+                        <h3>📝 Text Decryption</h3>
+                        <div class="enc-controls">
+                            <div class="control-group">
+                                <label>S-Box Selection:</label>
+                                <select id="text-sbox-select-decrypt">
+                                    <option value="research">K44 S-Box (Research)</option>
+                                    <option value="aes">AES S-Box</option>
+                                    <option value="custom">Custom S-Box</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label>Ciphertext (Base64):</label>
+                                <textarea id="decrypt-ciphertext" rows="4" placeholder="Tempel ciphertext base64 di sini"></textarea>
+                            </div>
+                            <div class="control-group">
+                                <label>Key (akan dipad/truncated ke 16 bytes):</label>
+                                <input id="decrypt-key" type="text" placeholder="Kunci enkripsi">
+                                <small>Gunakan key yang sama dengan saat encrypt</small>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-primary" onclick="decryptText()">🔓 Decrypt</button>
+                                <button class="btn btn-secondary" onclick="clearTextDecryption()">Clear</button>
+                            </div>
+                        </div>
+                        <div id="text-decrypt-result" style="display:none;">
+                            <h4>Plaintext:</h4>
+                            <textarea id="decrypt-plaintext" rows="4" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Encryption moved below, full width -->
+                <div class="encryption-module full-width" id="image-lab">
+                    <h3>🖼️ Image Encryption & Decryption</h3>
+                    <div class="enc-controls">
+                        <div class="control-group">
+                            <label>S-Box Selection:</label>
+                            <select id="image-sbox-select">
+                                <option value="research">K44 S-Box (Research)</option>
+                                <option value="aes">AES S-Box</option>
+                                <option value="custom">Custom S-Box</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Select Image to Encrypt:</label>
+                            <input type="file" id="image-upload" accept="image/*">
+                        </div>
+                        <div class="control-group">
+                            <label>Encryption Key:</label>
+                            <input id="image-key" type="text" placeholder="Kunci enkripsi">
+                            <small>Key will be automatically adjusted to 16 bytes</small>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn btn-primary" onclick="encryptImage()">🖼️ Encrypt Image</button>
+                            <button class="btn btn-secondary" onclick="decryptImage()">🔓 Decrypt Image</button>
+                            <button class="btn btn-secondary" onclick="clearImageEncryption()">Clear</button>
+                        </div>
+                    </div>
+                    <div id="image-result" style="display:none;">
+                        <h4>Hasil Enkripsi:</h4>
+                        <div class="image-comparison">
+                            <div class="image-container">
+                                <h5>Original</h5>
+                                <canvas id="original-image" width="300" height="300" style="border: 1px solid #ccc;"></canvas>
+                            </div>
+                            <div class="image-container">
+                                <h5>Encrypted</h5>
+                                <canvas id="encrypted-image" width="300" height="300" style="border: 1px solid #ccc;"></canvas>
+                            </div>
+                            <div class="image-container">
+                                <h5>Decrypted</h5>
+                                <canvas id="decrypted-canvas" width="300" height="300" style="border: 1px solid #ccc;"></canvas>
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn btn-secondary" onclick="downloadEncryptedImage()">⬇️ Download Encrypted</button>
+                            <button class="btn btn-secondary" onclick="showDecryptPreview()">👁️ Preview Decrypt</button>
+                        </div>
+                        <div id="image-analysis" class="metrics-grid" style="margin-top: 20px;"></div>
+                        <div id="image-histograms" style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ERROR SECTION -->
             <section id="error-section" class="error-section" style="display: none;">
                 <p id="error-message"></p>
             </section>
         </main>
 
         <footer>
-            <p>&copy; 2025 S-Box Cryptanalysis Tool | Cryptography Analysis</p>
+            <p>&copy; 2025 Crypto S-Box Lab</p>
+            <p>Reference: <a href="https://link.springer.com/article/10.1007/s11071-024-10414-3" target="_blank">Springer 2024</a></p>
         </footer>
     </div>
 
     <script src="sbox-analyzer.js"></script>
+    <script src="sbox-constructor.js"></script>
+    <script src="image-encryption.js"></script>
+    <script src="ui-extension.js"></script>
 </body>
 </html>
